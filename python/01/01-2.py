@@ -1,7 +1,7 @@
 import math
 
 def transformation(x):
-    return math.floor(x / 3) - 2
+    return (x // 3) - 2
 
 def continuous_transform(x):
     fuel_sum = 0
