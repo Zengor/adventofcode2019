@@ -1,18 +1,14 @@
 import math
 
-def transformation(x):
+def transform(x):
     return (x // 3) - 2
 
 def continuous_transform(x):
     fuel_sum = 0
-    curr = x
-    while True:
-        result = transformation(curr)
-        if result > 0:
-            fuel_sum += result
-            curr = result
-        else:
-            break
+    curr = transform(x)
+    while curr > 0:
+        fuel_sum += curr
+        curr = transform(x)
     return fuel_sum
 
 with open("../../input/01-1.txt") as f:
