@@ -112,7 +112,7 @@ def closest_intersection_steps(wire_a,wire_b):
     return min(filter(lambda d: d is not None, results))
 
 data = None 
-with open("../../input/03-1.txt") as f:
+with open("../input/03-1.txt") as f:
     data = tuple((parse_wire(line) for line in f))
     
 answer1 = closest_intersection_manhattan(data[0],data[1])
