@@ -52,14 +52,11 @@ pub fn part1(input: &str) -> usize {
         .split(",")
         .map(|s| s.parse().unwrap())
         .collect();
-    codes[1] = 12;
-    codes[2] = 2;
-    run_program(&mut codes);
-    codes[0]
+    try_inputs(12, 2, codes)
 }
 
-pub fn try_inputs(noun: usize, verb: usize, codes: &[usize]) -> usize {
-    let mut codes = codes.to_owned();
+pub fn try_inputs(noun: usize, verb: usize, codes: impl Into<Vec<usize>>) -> usize {
+    let mut codes = codes.into();
     codes[1] = noun;
     codes[2] = verb;
     run_program(&mut codes);
@@ -69,13 +66,13 @@ pub fn try_inputs(noun: usize, verb: usize, codes: &[usize]) -> usize {
 pub fn part2(input: &str) -> usize {
     use itertools::iproduct;
     let desired_output = 19690720;
-    let mut codes: Vec<usize> = input
+    let codes: Vec<usize> = input
         .trim()
         .split(",")
         .map(|s| s.parse().unwrap())
         .collect();
     for (noun, verb) in iproduct!((0..=99), (0..=99)) {        
-        let result = try_inputs(noun, verb, &codes);
+        let result = try_inputs(noun, verb, codes.clone());
         if result == desired_output {                       
             return 100 * noun + verb
         }
