@@ -111,10 +111,11 @@ def closest_intersection_steps(wire_a,wire_b):
     results = (a.intersection_step_dist(b) for (a,b) in product(wire_a,wire_b))
     return min(filter(lambda d: d is not None, results))
 
-data = None 
-with open("../input/03-1.txt") as f:
-    data = tuple((parse_wire(line) for line in f))
+if __name__ == "__main__":
+    data = None 
+    with open("../input/03-1.txt") as f:
+        data = tuple((parse_wire(line) for line in f))
     
-answer1 = closest_intersection_manhattan(data[0],data[1])
-answer2 = closest_intersection_steps(data[0],data[1])
-print("part 1 {} part 2 {}".format(answer1, answer2))
+    answer1 = closest_intersection_manhattan(data[0],data[1])
+    answer2 = closest_intersection_steps(data[0],data[1])
+    print("part 1 {} part 2 {}".format(answer1, answer2))

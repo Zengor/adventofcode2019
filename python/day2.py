@@ -36,9 +36,10 @@ def find_desired_output(desired_output, program_str):
             return 100 * noun + verb
     return None
 
-with open("../input/02-1.txt") as f:
-    program = list(map(int,f.read().strip().split(',')))
+if __name__ == "__main__":
+    with open("../input/02-1.txt") as f:
+        program = list(map(int,f.read().strip().split(',')))
     
-answer1 = program_with_inputs(12, 2, program)
-answer2 = find_desired_output(19690720, program)
-print("part 1 {} part 2 {}".format(answer1, answer2))
+    answer1 = program_with_inputs(12, 2, program)
+    answer2 = find_desired_output(19690720, program)
+    print("part 1 {} part 2 {}".format(answer1, answer2))

@@ -11,7 +11,8 @@ def total_fuel(x):
         curr = fuel_needed(x)
     return fuel_sum
 
-with open("../input/01-1.txt") as f:
-    answer1 = sum(map(transformation,(int(line) for line in f)))
-    answer2 = sum(map(continuous_transform,(int(line) for line in f)))
-    print("part 1 {} part 2 {}", answer1, answer2)
+if __name__ == "__main__":
+    with open("../input/01-1.txt") as f:
+        answer1 = sum(map(transformation,(int(line) for line in f)))
+        answer2 = sum(map(continuous_transform,(int(line) for line in f)))
+        print("part 1 {} part 2 {}", answer1, answer2)
