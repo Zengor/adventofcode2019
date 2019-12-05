@@ -15,7 +15,7 @@ pub fn try_inputs(noun: isize, verb: isize, codes: impl Into<Vec<isize>>) -> isi
     let mut codes = codes.into();
     codes[1] = noun;
     codes[2] = verb;
-    run_program(&mut codes);
+    run_program_no_in(&mut codes);
     codes[0]
 }
 

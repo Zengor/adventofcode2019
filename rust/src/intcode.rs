@@ -1,3 +1,17 @@
+pub fn run_program_no_in(codes: &mut [isize]) {
+    // setting up an empty input as this function assumes programs witn no
+    // input (eg for day 2, mostly)
+    let input = std::io::empty();
+    run_program(codes, input);
+}
+
+pub fn run_program(codes: &mut [isize], mut input: impl IntcodeInput) {
+    let mut machine = IntcodeMachine::new(codes);
+    while !machine.stopped {
+        machine.step(&mut input).unwrap();
+    }
+}
+
 #[derive(PartialEq, Eq, Debug)]
 pub enum Opcode {
     Add,
@@ -16,7 +30,7 @@ impl Opcode {
         use Opcode::*;
         match *self {
             Add | Mul | LessThan | Equals => 3,
-            JumpIfTrue |JumpIfFalse => 2,
+            JumpIfTrue | JumpIfFalse => 2,
             Input | Output => 1,
             Halt => 0,
         }
@@ -25,7 +39,7 @@ impl Opcode {
         use Opcode::*;
         match *self {
             JumpIfTrue | JumpIfFalse => 0,
-            _ => 1 + self.num_params()
+            _ => 1 + self.num_params(),
         }
     }
 }
@@ -51,29 +65,15 @@ impl From<isize> for Opcode {
             99 => Halt,
             // this should never happen in a well-formed program
             // as the program cursor will only ever really go over opcode positions
-            _ => panic!("Invalid opcode"),
+            x => panic!("Invalid opcode {}", x),
         }
     }
 }
 
 #[derive(Debug)]
-pub enum ParameterMode {
+enum ParameterMode {
     Position,
     Immediate,
-}
-
-impl From<isize> for ParameterMode {
-    fn from(code: isize) -> Self {
-        match code {
-            0 => ParameterMode::Position,
-            1 => ParameterMode::Immediate,
-            x => {
-                println!("Invalid parameter mode {}", x);
-                // will pick this as default just to theoretically avoid crashing
-                ParameterMode::Position
-            }
-        }
-    }
 }
 
 #[derive(Debug)]
@@ -84,14 +84,14 @@ impl Parameter {
         Parameter(ParameterMode::Immediate, i)
     }
     /// Returns just the value indicated by this parameter
-    /// according to is mode
-    fn find_value(&self, codes: &[isize]) -> isize {
+    /// according to its mode
+    fn find(&self, codes: &[isize]) -> isize {
         match self.0 {
             ParameterMode::Position => codes[self.1 as usize],
             ParameterMode::Immediate => self.1,
         }
-    }    
-    fn find_value_mut<'a> (&self, codes: &'a mut [isize]) -> &'a mut isize {        
+    }
+    fn find_mut<'a>(&self, codes: &'a mut [isize]) -> &'a mut isize {
         match self.0 {
             ParameterMode::Position => &mut codes[self.1 as usize],
             ParameterMode::Immediate => unreachable!("Told to write with immediate mode"),
@@ -99,109 +99,157 @@ impl Parameter {
     }
 }
 
+#[derive(Debug)]
 pub struct Instruction {
-    params: Vec<Parameter>,
     opcode: Opcode,
+    params: Vec<Parameter>,
 }
 
-fn create_instruction(cursor: usize, codes: &[isize]) -> Instruction {
-    let instruction = codes[cursor];
-    let opcode: Opcode = instruction.into();
-    let mut p_modes = (2..=4).map(|i| match get_digit(instruction, i) {
-        0 => ParameterMode::Position,
-        1 => ParameterMode::Immediate,
-        x => {
-            unreachable!("Invalid parameter mode {}", x);
+impl Instruction {
+    fn create(cursor: usize, codes: &[isize]) -> Instruction {
+        let instruction = codes[cursor];
+        let opcode: Opcode = instruction.into();
+        let mut p_modes = (2..=4).map(|i| match get_digit(instruction, i) {
+            0 => ParameterMode::Position,
+            1 => ParameterMode::Immediate,
+            x => {
+                unreachable!("Invalid parameter mode {}", x);
+            }
+        });
+        let mut params = Vec::new();
+        for i in 1..=opcode.num_params() {
+            params.push(Parameter(p_modes.next().unwrap(), codes[cursor + i]));
         }
-    });
-    let mut params = Vec::new();
-    for i in 1..=opcode.num_params() {
-        params.push(Parameter(p_modes.next().unwrap(), codes[cursor + i]));
+        Instruction { opcode, params }
     }
-    Instruction { params, opcode }
-}
 
-fn add(params: &[Parameter], codes: &mut [isize], _: &mut usize) {
-    let result = params[0].find_value(codes) + params[1].find_value(codes);
-    *params[2].find_value_mut(codes) = result;
-}
-fn mul(params: &[Parameter], codes: &mut [isize], _: &mut usize) {
-    let result = params[0].find_value(codes) * params[1].find_value(codes);
-    *params[2].find_value_mut(codes) = result;
-}
-fn place(params: &[Parameter], codes: &mut [isize], _: &mut usize) {
-    codes[params[0].1 as usize] = params[1].1;
-}
-fn out(params: &[Parameter], codes: &mut [isize], _: &mut usize) {
-    println!("OUT: {}", params[0].find_value(codes));
-}
-
-fn jif(params: &[Parameter], codes: &mut [isize], cursor: &mut usize) {
-    if params[0].find_value(codes) == 0 {
-        *cursor = params[1].find_value(codes) as usize;
-    } else {
-        // the cursor doesn't automatically increase when this instruction
-        // is called, so we have to increase it manually if there is no jump
-        *cursor += 3;
-    }   
-}
-fn jit(params: &[Parameter], codes: &mut [isize], cursor: &mut usize) {
-    if params[0].find_value(codes) != 0 {
-        *cursor = params[1].find_value(codes) as usize;
-    } else {
-        // the cursor doesn't automatically increase when this instruction
-        // is called, so we have to increase it manually if there is no jump
-        *cursor += 3;
-    }   
-}
-fn lt(params: &[Parameter], codes: &mut [isize], _: &mut usize) {
-    let result = if params[0].find_value(codes) < params[1].find_value(codes) {
-        1
-    } else {
-        0
-    };
-    *params[2].find_value_mut(codes) = result;
-}
-fn eq(params: &[Parameter], codes: &mut [isize], _: &mut usize) {
-    let result = if params[0].find_value(codes) == params[1].find_value(codes) {
-        1
-    } else {
-        0
-    };
-    *params[2].find_value_mut(codes) = result;
-}
-
-pub fn run_program(codes: &mut [isize]) {
-    let mut cursor = 0;
-    let mut instruction = create_instruction(cursor, codes);
-    let mut input = String::new();
-    while instruction.opcode != Opcode::Halt {
-        //println!("{:?}", codes);
-        println!(
-             "cursor {}, opcode {:?} params {:?}",
-             cursor, instruction.opcode, &instruction.params
-        );
-        let function = match instruction.opcode {
-            Opcode::Add => add,
-            Opcode::Mul => mul,
+    fn execute<T>(&mut self, cursor: &mut usize, codes: &mut [isize], input: &mut T)
+    where
+        T: IntcodeInput,
+    {
+        let f = match self.opcode {
+            Opcode::Add => ops::add,
+            Opcode::Mul => ops::mul,
             Opcode::Input => {
                 println!("INPUT: ");
-                std::io::stdin().read_line(&mut input).expect("Failed reading input");
+                let input: &str = &input.read_line().expect("Failed receiving input");
                 // little hack: adding the input as a pseudo-parameter of
                 // the instruction
                 let in_value = input.trim().parse().unwrap();
-                instruction.params.push(Parameter::immediate(in_value));
-                place
+                self.params.push(Parameter::immediate(in_value));
+                ops::place
             }
-            Opcode::Output => out,
-            Opcode::JumpIfTrue => jit,
-            Opcode::JumpIfFalse => jif,
-            Opcode::LessThan => lt,
-            Opcode::Equals => eq,
-            Opcode::Halt => unreachable!("Halt instruction should have stopped loop")
+            Opcode::Output => ops::out,
+            Opcode::JumpIfTrue => ops::jit,
+            Opcode::JumpIfFalse => ops::jif,
+            Opcode::LessThan => ops::lt,
+            Opcode::Equals => ops::eq,
+            Opcode::Halt => {
+                unreachable!("Should be impossible: Halt is checked before entering this function")
+            }
         };
-        function(&instruction.params, codes, &mut cursor);
-        cursor += instruction.opcode.cursor_change();
-        instruction = create_instruction(cursor, codes);
+        f(&self.params, codes, cursor);
+        *cursor += self.opcode.cursor_change();
+    }
+}
+
+struct IntcodeMachine<'a> {
+    stopped: bool,
+    cursor: usize,
+    codes: &'a mut [isize],
+}
+
+impl<'a> IntcodeMachine<'a> {
+    fn new(codes: &'a mut [isize]) -> Self {
+        Self {
+            stopped: false,
+            cursor: 0,
+            codes,
+        }
+    }
+
+    fn step<T>(&mut self, input: &mut T) -> Result<(), String>
+    where
+        T: IntcodeInput,
+    {
+        let mut instruction = Instruction::create(self.cursor, self.codes);
+        //println!("cursor: {}, {:?}", self.cursor, instruction);
+        if self.stopped {
+            return Err("Program Halted".into());
+        }
+        match instruction.opcode {
+            Opcode::Halt => {
+                self.stopped = true;
+                return Ok(());
+            }
+            _ => instruction.execute(&mut self.cursor, self.codes, input),
+        };
+        Ok(())
+    }
+}
+
+pub trait IntcodeInput {
+    fn read_line(&mut self) -> std::io::Result<String>;
+}
+
+impl IntcodeInput for std::io::Empty {
+    fn read_line(&mut self) -> std::io::Result<String> {
+        Ok(String::new())
+    }
+}
+impl IntcodeInput for std::io::Lines<std::io::StdinLock<'_>> {
+    fn read_line(&mut self) -> std::io::Result<String> {
+        self.next().unwrap()
+    }
+}
+
+mod ops {
+    use super::*;
+    fn op_and_place(params: &[Parameter], codes: &mut [isize], f: impl Fn(isize, isize) -> isize) {
+        let (x, y, dest) = (
+            params[0].find(codes),
+            params[1].find(codes),
+            params[2].find_mut(codes),
+        );
+        *dest = f(x, y)
+    }
+    pub(super) fn add(params: &[Parameter], codes: &mut [isize], _: &mut usize) {
+        op_and_place(params, codes, std::ops::Add::add)
+    }
+    pub(super) fn mul(params: &[Parameter], codes: &mut [isize], _: &mut usize) {
+        op_and_place(params, codes, std::ops::Mul::mul)
+    }
+    pub(super) fn place(params: &[Parameter], codes: &mut [isize], _: &mut usize) {
+        codes[params[0].1 as usize] = params[1].1;
+    }
+    pub(super) fn out(params: &[Parameter], codes: &mut [isize], _: &mut usize) {
+        println!("OUT: {}", params[0].find(codes));
+    }
+
+    pub(super) fn jif(params: &[Parameter], codes: &mut [isize], cursor: &mut usize) {
+        if params[0].find(codes) == 0 {
+            *cursor = params[1].find(codes) as usize;
+        } else {
+            // the cursor doesn't automatically increase when this instruction
+            // is called, so we have to increase it manually if there is no jump
+            *cursor += 3;
+        }
+    }
+    pub(super) fn jit(params: &[Parameter], codes: &mut [isize], cursor: &mut usize) {
+        if params[0].find(codes) != 0 {
+            *cursor = params[1].find(codes) as usize;
+        } else {
+            // the cursor doesn't automatically increase when this instruction
+            // is called, so we have to increase it manually if there is no jump
+            *cursor += 3;
+        }
+    }
+    pub(super) fn lt(params: &[Parameter], codes: &mut [isize], _: &mut usize) {
+        let comp = |a, b| if a < b { 1 } else { 0 };
+        op_and_place(params, codes, comp);
+    }
+    pub(super) fn eq(params: &[Parameter], codes: &mut [isize], _: &mut usize) {
+        let comp = |a, b| if a == b { 1 } else { 0 };
+        op_and_place(params, codes, comp);
     }
 }
