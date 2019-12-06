@@ -1,14 +1,16 @@
+use std::io::{sink, Write};
+
 pub fn run_program_no_in(codes: &mut [isize]) {
     // setting up an empty input as this function assumes programs witn no
     // input (eg for day 2, mostly)
     let input = std::io::empty();
-    run_program(codes, input);
+    run_program(codes, input, &mut sink());
 }
 
-pub fn run_program(codes: &mut [isize], mut input: impl IntcodeInput) {
+pub fn run_program(codes: &mut [isize], mut input: impl IntcodeInput, output: &mut impl Write) {
     let mut machine = IntcodeMachine::new(codes);
     while !machine.stopped {
-        machine.step(&mut input).unwrap();
+        machine.step(&mut input, output).unwrap();
     }
 }
 
@@ -123,15 +125,19 @@ impl Instruction {
         Instruction { opcode, params }
     }
 
-    fn execute<T>(&mut self, cursor: &mut usize, codes: &mut [isize], input: &mut T)
-    where
+    fn execute<T, W>(
+        &mut self,
+        cursor: &mut usize,
+        codes: &mut [isize],
+        input: &mut T,
+        out_stream: &mut W,
+    ) where
         T: IntcodeInput,
+        W: Write,
     {
         let f = match self.opcode {
-            Opcode::Add => ops::add,
-            Opcode::Mul => ops::mul,
             Opcode::Input => {
-                println!("INPUT: ");
+                writeln!(out_stream, "INPUT: ").unwrap();
                 let input: &str = &input.read_line().expect("Failed receiving input");
                 // little hack: adding the input as a pseudo-parameter of
                 // the instruction
@@ -139,7 +145,13 @@ impl Instruction {
                 self.params.push(Parameter::immediate(in_value));
                 ops::place
             }
-            Opcode::Output => ops::out,
+            Opcode::Output => {
+                ops::out(out_stream, &self.params, codes);
+                *cursor += Opcode::Output.cursor_change();
+                return;
+            }
+            Opcode::Add => ops::add,
+            Opcode::Mul => ops::mul,
             Opcode::JumpIfTrue => ops::jit,
             Opcode::JumpIfFalse => ops::jif,
             Opcode::LessThan => ops::lt,
@@ -168,7 +180,7 @@ impl<'a> IntcodeMachine<'a> {
         }
     }
 
-    fn step<T>(&mut self, input: &mut T) -> Result<(), String>
+    fn step<T>(&mut self, input: &mut T, output: &mut impl Write) -> Result<(), String>
     where
         T: IntcodeInput,
     {
@@ -182,7 +194,7 @@ impl<'a> IntcodeMachine<'a> {
                 self.stopped = true;
                 return Ok(());
             }
-            _ => instruction.execute(&mut self.cursor, self.codes, input),
+            _ => instruction.execute(&mut self.cursor, self.codes, input, output),
         };
         Ok(())
     }
@@ -203,8 +215,15 @@ impl IntcodeInput for std::io::Lines<std::io::StdinLock<'_>> {
     }
 }
 
+impl IntcodeInput for &str {
+    fn read_line(&mut self) -> std::io::Result<String> {
+        Ok(self.lines().next().unwrap().to_owned())
+    }
+}
+
 mod ops {
     use super::*;
+
     fn op_and_place(params: &[Parameter], codes: &mut [isize], f: impl Fn(isize, isize) -> isize) {
         let (x, y, dest) = (
             params[0].find(codes),
@@ -222,27 +241,23 @@ mod ops {
     pub(super) fn place(params: &[Parameter], codes: &mut [isize], _: &mut usize) {
         codes[params[0].1 as usize] = params[1].1;
     }
-    pub(super) fn out(params: &[Parameter], codes: &mut [isize], _: &mut usize) {
-        println!("OUT: {}", params[0].find(codes));
-    }
-
-    pub(super) fn jif(params: &[Parameter], codes: &mut [isize], cursor: &mut usize) {
-        if params[0].find(codes) == 0 {
+    fn jump_if(
+        params: &[Parameter],
+        codes: &mut [isize],
+        cursor: &mut usize,
+        cond: impl Fn(isize) -> bool,
+    ) {
+        if cond(params[0].find(codes)) {
             *cursor = params[1].find(codes) as usize;
         } else {
-            // the cursor doesn't automatically increase when this instruction
-            // is called, so we have to increase it manually if there is no jump
-            *cursor += 3;
+            *cursor += 3
         }
+    }
+    pub(super) fn jif(params: &[Parameter], codes: &mut [isize], cursor: &mut usize) {
+        jump_if(params, codes, cursor, |v| v == 0)
     }
     pub(super) fn jit(params: &[Parameter], codes: &mut [isize], cursor: &mut usize) {
-        if params[0].find(codes) != 0 {
-            *cursor = params[1].find(codes) as usize;
-        } else {
-            // the cursor doesn't automatically increase when this instruction
-            // is called, so we have to increase it manually if there is no jump
-            *cursor += 3;
-        }
+        jump_if(params, codes, cursor, |v| v != 0)
     }
     pub(super) fn lt(params: &[Parameter], codes: &mut [isize], _: &mut usize) {
         let comp = |a, b| if a < b { 1 } else { 0 };
@@ -251,5 +266,12 @@ mod ops {
     pub(super) fn eq(params: &[Parameter], codes: &mut [isize], _: &mut usize) {
         let comp = |a, b| if a == b { 1 } else { 0 };
         op_and_place(params, codes, comp);
+    }
+
+    // out is a special case
+    pub(super) fn out(out_stream: &mut impl Write, params: &[Parameter], codes: &mut [isize]) {
+        match writeln!(out_stream, "OUT: {}", params[0].find(codes)) {
+            _ => (),
+        }
     }
 }
