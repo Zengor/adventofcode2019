@@ -17,6 +17,18 @@ pub fn parse_graph(input: &str) -> (DiGraph<(), ()>, HashMap<&str, NodeIndex>) {
     (graph, nodes)
 }
 
+pub fn parse_graphmap<Ty>(input: &str) -> GraphMap<&str, (), Ty>
+where
+    Ty: petgraph::EdgeType,
+{
+    GraphMap::<&str, (), Ty>::from_edges(input.lines().map(|line| {
+        line.trim()
+            .split(")")
+            .collect_tuple::<(&str, &str)>()
+            .unwrap()
+    }))
+}
+
 pub fn part1(input: &str) -> u32 {
     let (graph, _) = parse_graph(input);
     let sorted = toposort(&graph, None).unwrap();
@@ -29,6 +41,20 @@ pub fn part1(input: &str) -> u32 {
                 orbits.insert(curr, orbits_sum);
                 orbits
             });
+    orbit_counts.values().sum()
+}
+pub fn part1_graphmap(input: &str) -> u32 {
+    let
+        graph = parse_graphmap::<petgraph::Directed>(input);    
+    let sorted = toposort(&graph, None).unwrap();
+    let orbit_counts = sorted
+        .iter()
+        .rev()
+        .fold(HashMap::<&str, u32>::new(), |mut orbits, curr| {
+            let orbits_sum = graph.neighbors(*curr).map(|n| 1 + orbits[n]).sum();
+            orbits.insert(curr, orbits_sum);
+            orbits
+        });
     orbit_counts.values().sum()
 }
 
@@ -55,6 +81,29 @@ pub fn part2(input: &str) -> u32 {
     0
 }
 
+pub fn part2_graphmap(input: &str) -> u32 {
+    let graph = parse_graphmap::<petgraph::Directed>(input);
+    let (start, end) = ("YOU", "SAN");
+    let mut distances = HashMap::<&str, u32>::new();
+    distances.insert(start, 0);
+    let mut bfs = Bfs::new(&graph, start);
+    while let Some(node) = bfs.next(&graph) {
+        if node == end {
+            return distances[end] - 2;
+        }
+        let neighbors = graph.neighbors(node);
+        for neighbor in neighbors {
+            if distances.contains_key(&neighbor) {
+                continue;
+            } else {
+                distances.insert(neighbor, distances[&node] + 1);
+            }
+        }
+    }
+    0
+}
+
+#[allow(dead_code)]
 fn find_key<'a>(index: &NodeIndex, nodes: &HashMap<&'a str, NodeIndex>) -> &'a str {
     for (key, value) in nodes.iter() {
         if value == index {

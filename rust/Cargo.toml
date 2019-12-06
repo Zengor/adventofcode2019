@@ -1,5 +1,5 @@
 [package]
-name = "rust"
+name = "aoc2019"
 version = "0.1.0"
 authors = ["Zengor <ialmeida@edu.unifor.br>"]
 edition = "2018"
@@ -17,3 +17,10 @@ path = "src/lib.rs"
 [dependencies]
 itertools = "0.8.2"
 petgraph = "0.4"
+
+[dev-dependencies]
+criterion = "0.3.0"
+
+[[bench]]
+name = "benches"
+harness = false
