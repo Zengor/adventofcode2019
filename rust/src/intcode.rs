@@ -1,17 +1,19 @@
 use std::io::{sink, Write};
 
-pub fn run_program_no_in(codes: &mut [isize]) {
+pub fn run_program_no_in(codes: &[isize]) {
     // setting up an empty input as this function assumes programs witn no
     // input (eg for day 2, mostly)
-    let input = std::io::empty();
-    run_program(codes, input, &mut sink());
+    let mut input = std::io::empty();
+    run_program(codes, &mut input, &mut sink());
 }
 
-pub fn run_program(codes: &mut [isize], mut input: impl IntcodeInput, output: &mut impl Write) {
-    let mut machine = IntcodeMachine::new(codes);
-    while !machine.stopped {
-        machine.step(&mut input, output).unwrap();
-    }
+pub fn run_program<I, O>(codes: &[isize], input: &mut I, output: &mut O)
+where
+    I: IntcodeInput,
+    O: IntcodeOutput,
+{
+    let mut machine = IntcodeMachine::copy_program(codes);
+    machine.run_until_halt(input, output)
 }
 
 #[derive(PartialEq, Eq, Debug)]
@@ -125,20 +127,23 @@ impl Instruction {
         Instruction { opcode, params }
     }
 
-    fn execute<T, W>(
+    fn execute<T, O>(
         &mut self,
         cursor: &mut usize,
         codes: &mut [isize],
         input: &mut T,
-        out_stream: &mut W,
-    ) where
+        out_stream: &mut O,
+    ) -> Result<(), String>
+    where
         T: IntcodeInput,
-        W: Write,
+        O: IntcodeOutput,
     {
         let f = match self.opcode {
             Opcode::Input => {
-                writeln!(out_stream, "INPUT: ").unwrap();
-                let input: &str = &input.read_line().expect("Failed receiving input");
+                let input: &str = &match input.read_line() {
+                    Some(s) => s,
+                    None => return Err("Out of Input".to_owned())
+                };
                 // little hack: adding the input as a pseudo-parameter of
                 // the instruction
                 let in_value = input.trim().parse().unwrap();
@@ -148,7 +153,7 @@ impl Instruction {
             Opcode::Output => {
                 ops::out(out_stream, &self.params, codes);
                 *cursor += Opcode::Output.cursor_change();
-                return;
+                return Ok(());
             }
             Opcode::Add => ops::add,
             Opcode::Mul => ops::mul,
@@ -162,30 +167,65 @@ impl Instruction {
         };
         f(&self.params, codes, cursor);
         *cursor += self.opcode.cursor_change();
+        Ok(())
     }
 }
 
-struct IntcodeMachine<'a> {
+pub struct IntcodeMachine {
     stopped: bool,
     cursor: usize,
-    codes: &'a mut [isize],
+    codes: Vec<isize>,
 }
 
-impl<'a> IntcodeMachine<'a> {
-    fn new(codes: &'a mut [isize]) -> Self {
+impl<'a> IntcodeMachine {
+    pub fn copy_program(codes: &[isize]) -> Self {
         Self {
             stopped: false,
             cursor: 0,
-            codes,
+            codes: codes.into(),
         }
     }
 
-    fn step<T>(&mut self, input: &mut T, output: &mut impl Write) -> Result<(), String>
+    pub fn is_stopped(&self) -> bool { self.stopped }
+
+    pub fn reset(&mut self) {
+        self.stopped = true;
+        self.cursor = 0;
+    }
+    
+    pub fn run_until_halt<I, O>(&mut self, input: &mut I, output: &mut O)
     where
-        T: IntcodeInput,
+        I: IntcodeInput,
+        O: IntcodeOutput,
     {
-        let mut instruction = Instruction::create(self.cursor, self.codes);
-        //println!("cursor: {}, {:?}", self.cursor, instruction);
+        while !self.stopped {
+            self.step(input, output).unwrap();
+        }
+    }
+    // runs with given input until it's empty
+    // (runs indefinitely with sink
+    pub fn run_while_input<I, O>(&mut self, input: &mut I, output: &mut O)
+    where
+        I: IntcodeInput,
+        O: IntcodeOutput,
+    {
+        while !self.stopped {
+            match self.step(input, output) {
+                Ok(()) => (),
+                Err(_) => {
+                    return;
+                }
+            };
+        }
+    }
+
+    pub fn step<I, O>(&mut self, input: &mut I, output: &mut O) -> Result<(), String>
+    where
+        I: IntcodeInput,
+        O: IntcodeOutput,
+    {
+        let mut instruction = Instruction::create(self.cursor, &self.codes);
+        // println!("cursor: {}, {:?}", self.cursor, instruction);
         if self.stopped {
             return Err("Program Halted".into());
         }
@@ -194,30 +234,73 @@ impl<'a> IntcodeMachine<'a> {
                 self.stopped = true;
                 return Ok(());
             }
-            _ => instruction.execute(&mut self.cursor, self.codes, input, output),
+            _ => instruction.execute(&mut self.cursor, &mut self.codes, input, output)?,
         };
         Ok(())
     }
 }
 
 pub trait IntcodeInput {
-    fn read_line(&mut self) -> std::io::Result<String>;
+    fn read_line(&mut self) -> Option<String>;
 }
 
 impl IntcodeInput for std::io::Empty {
-    fn read_line(&mut self) -> std::io::Result<String> {
-        Ok(String::new())
+    fn read_line(&mut self) -> Option<String> {
+        Some(String::new())
     }
 }
 impl IntcodeInput for std::io::Lines<std::io::StdinLock<'_>> {
-    fn read_line(&mut self) -> std::io::Result<String> {
-        self.next().unwrap()
+    fn read_line(&mut self) -> Option<String> {
+        self.next()?.ok()
     }
 }
 
 impl IntcodeInput for &str {
-    fn read_line(&mut self) -> std::io::Result<String> {
-        Ok(self.lines().next().unwrap().to_owned())
+    fn read_line(&mut self) -> Option<String> {
+        Some(self.lines().next()?.to_owned())
+    }
+}
+
+impl IntcodeInput for Vec<isize> {
+    fn read_line(&mut self) -> Option<String> {
+        if self.len() == 0 {
+            return None;
+        }
+        Some(self.remove(0).to_string())
+    }
+}
+
+impl IntcodeInput for Option<isize> {
+    fn read_line(&mut self) -> Option<String> {
+        self.take().map(|i| i.to_string())
+    }
+}
+
+
+pub trait IntcodeOutput {
+    fn write(&mut self, out: isize);
+}
+
+impl IntcodeOutput for std::io::Sink {
+    fn write(&mut self, _: isize) {}
+}
+impl IntcodeOutput for std::io::StdoutLock<'_> {
+    fn write(&mut self, out: isize) {
+        match writeln!(self, "OUTPUT: {}", out) {
+            // silently fail
+            _ => (),
+        };
+    }
+}
+impl IntcodeOutput for Vec<isize> {
+    fn write(&mut self, out: isize) {
+        self.push(out)
+    }
+}
+
+impl IntcodeOutput for Option<isize> {
+    fn write(&mut self, out: isize) {
+        *self = Some(out);
     }
 }
 
@@ -269,9 +352,11 @@ mod ops {
     }
 
     // out is a special case
-    pub(super) fn out(out_stream: &mut impl Write, params: &[Parameter], codes: &mut [isize]) {
-        match writeln!(out_stream, "OUT: {}", params[0].find(codes)) {
-            _ => (),
-        }
+    pub(super) fn out(
+        out_stream: &mut impl IntcodeOutput,
+        params: &[Parameter],
+        codes: &mut [isize],
+    ) {
+        out_stream.write(params[0].find(codes))
     }
 }

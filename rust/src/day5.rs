@@ -8,7 +8,7 @@ pub fn part1(input: &str) -> isize {
         .collect();
     //let stdin = std::io::stdin();
     //let input = stdin.lock().lines();    
-    intcode::run_program(&mut codes, "1", &mut std::io::sink());
+    intcode::run_program(&mut codes, &mut "1", &mut std::io::sink());
     codes[0]
 }
 
@@ -20,6 +20,6 @@ pub fn part2(input: &str) -> isize {
         .collect();
     //let stdin = std::io::stdin();
     //let input = stdin.lock().lines();
-    intcode::run_program(&mut codes,"5", &mut std::io::sink());
+    intcode::run_program(&mut codes, &mut "5", &mut std::io::sink());
     codes[0]
 }
