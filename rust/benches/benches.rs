@@ -47,5 +47,19 @@ fn day6(c: &mut Criterion) {
     }
 }
 
-criterion_group!(benches, day5, day6);
+fn day7(c: &mut Criterion) {
+    let input = include_str!("../../input/07-1.txt");
+    c.bench_function("Day 7 Part 1", |b| {
+        b.iter(|| {
+            adventofcode2019::day7::part1(black_box(&input))
+        })
+    });
+    c.bench_function("Dat 7 Part 2", |b| {
+        b.iter(|| {
+            adventofcode2019::day7::part2(black_box(&input))
+        })
+    });
+}
+
+criterion_group!(benches, day5, day6, day7);
 criterion_main!(benches);
