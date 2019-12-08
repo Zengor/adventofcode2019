@@ -1,9 +1,10 @@
-use super::intcode::{self, IntcodeMachine};
+use super::intcode::IntcodeMachine;
 
 use std::ops::Range;
 
 use itertools::Itertools;
 
+    
 fn find_max_thruster(input: &str, setting_range: Range<isize>, loop_limit: usize) -> isize {
     let codes: Vec<isize> = input
         .trim()
@@ -38,6 +39,7 @@ fn amp_exec(codes: &[isize], phases: Vec<isize>, loop_limit: usize) -> isize {
         }
         input = out;
     }
+    
     out.unwrap()
 }
 

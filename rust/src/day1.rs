@@ -1,4 +1,4 @@
-fn fuel_needed(x: i32) -> i32 {
+pub fn fuel_needed(x: i32) -> i32 {
     x / 3 - 2
 }
 
@@ -10,7 +10,7 @@ pub fn part1(input: &str) -> i32 {
         .sum()
 }
 
-fn total_fuel(mut x: i32) -> i32 {
+pub fn total_fuel(mut x: i32) -> i32 {
     let mut sum = 0;
     x = fuel_needed(x);
     while x > 0 {
