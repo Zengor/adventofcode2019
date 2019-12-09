@@ -23,8 +23,8 @@ use std::ops::Range;
 use itertools::Itertools;
 
     
-fn find_max_thruster(input: &str, setting_range: Range<isize>, loop_limit: usize) -> isize {
-    let codes: Vec<isize> = input
+fn find_max_thruster(input: &str, setting_range: Range<i64>, loop_limit: usize) -> i64 {
+    let codes: Vec<i64> = input
         .trim()
         .split(",")
         .map(|s| s.parse().expect("failedparse"))
@@ -38,7 +38,7 @@ fn find_max_thruster(input: &str, setting_range: Range<isize>, loop_limit: usize
         .unwrap()
 }
 
-fn amp_exec(codes: &[isize], phases: Vec<isize>, loop_limit: usize) -> isize {
+fn amp_exec(codes: &[i64], phases: Vec<i64>, loop_limit: usize) -> i64 {
     let len = phases.len();
     let mut phases = phases.into_iter();
     let mut machines: Vec<_> = (0..len)
@@ -48,7 +48,7 @@ fn amp_exec(codes: &[isize], phases: Vec<isize>, loop_limit: usize) -> isize {
             m
         })
         .collect();
-    let mut input = Some(0isize);
+    let mut input = Some(0i64);
     let mut out = None;
     for i in 0.. {
         machines[i % len].run_while_input(&mut input, &mut out);
@@ -61,10 +61,10 @@ fn amp_exec(codes: &[isize], phases: Vec<isize>, loop_limit: usize) -> isize {
     out.unwrap()
 }
 
-pub fn part1(input: &str) -> isize {
+pub fn part1(input: &str) -> i64 {
     find_max_thruster(input, 0..5, 1)
 }
 
-pub fn part2(input: &str) -> isize {
+pub fn part2(input: &str) -> i64 {
     find_max_thruster(input, 5..10, std::usize::MAX)
 }

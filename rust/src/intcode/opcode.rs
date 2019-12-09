@@ -8,6 +8,7 @@ pub enum Opcode {
     JumpIfFalse,
     LessThan,
     Equals,
+    MoveRelative,
     Halt,
 }
 
@@ -17,7 +18,7 @@ impl Opcode {
         match *self {
             Add | Mul | LessThan | Equals => 3,
             JumpIfTrue | JumpIfFalse => 2,
-            Input | Output => 1,
+            Input | Output | MoveRelative => 1,
             Halt => 0,
         }
     }
@@ -28,10 +29,12 @@ impl Opcode {
             _ => 1 + self.num_params(),
         }
     }
+
 }
 
-impl From<isize> for Opcode {
-    fn from(code: isize) -> Self {
+
+impl From<i64> for Opcode {
+    fn from(code: i64) -> Self {
         use Opcode::*;
         // the actual instruction is only the last two digits
         match code % 100 {
@@ -43,6 +46,7 @@ impl From<isize> for Opcode {
             6 => JumpIfFalse,
             7 => LessThan,
             8 => Equals,
+            9 => MoveRelative,
             99 => Halt,
             // this should never happen in a well-formed program
             // as the program cursor will only ever really go over opcode positions

@@ -31,18 +31,17 @@ pub fn part1(input: &str) -> i64 {
     try_inputs(12, 2, codes)
 }
 
-pub fn try_inputs(noun: isize, verb: isize, codes: impl Into<Vec<isize>>) -> isize {
+pub fn try_inputs(noun: i64, verb: i64, codes: impl Into<Vec<i64>>) -> i64 {
     let mut codes = codes.into();
     codes[1] = noun;
     codes[2] = verb;
-    run_program_no_in(&mut codes);
-    codes[0]
+    run_program_no_in(&mut codes)
 }
 
-pub fn part2(input: &str) -> isize {
+pub fn part2(input: &str) -> i64 {
     use itertools::iproduct;
     let desired_output = 19690720;
-    let codes: Vec<isize> = input
+    let codes: Vec<i64> = input
         .trim()
         .split(",")
         .map(|s| s.parse().unwrap())

@@ -27,8 +27,8 @@ pub fn part1(input: &str) -> i64 {
     codes[0]
 }
 
-pub fn part2(input: &str) -> isize {
-    let mut codes: Vec<isize> = input
+pub fn part2(input: &str) -> i64 {
+    let mut codes: Vec<i64> = input
         .trim()
         .split(",")
         .map(|s| s.parse().unwrap())
