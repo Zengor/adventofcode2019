@@ -1,9 +1,29 @@
+//! # Day 2: 1202 Program Alarm
+//!
+//! ## Problem Description
+//!
+//! This is the first day to introduce Intcode programs. The problem
+//! was basically to implement an Intcode computer supporting 2 basic
+//! operations. In part 1 you replace positions 1 and 2 of the program
+//! with given numbers to check the value that ends up in position 0
+//! after the program halts. Part 2 uses the same idea, but you have
+//! to test all combinations of numbers and find which results in a
+//! specific number.
+//!
+//! ## Implementention details
+//!
+//! Intcode programs show up repeatedly in future days, so I my
+//! implementation evolved as more features were needed, and was moved
+//! to a separate module. There isn't much to say about this day
+//! specifically.
+
+
 use super::intcode::*;
 
-pub fn part1(input: &str) -> isize {
+pub fn part1(input: &str) -> i64 {
     // as the codes are used for indexing and can never be negative, i use usize
     // instead of a signed integer type
-    let codes: Vec<isize> = input
+    let codes: Vec<i64> = input
         .trim()
         .split(",")
         .map(|s| s.parse().unwrap())

@@ -1,3 +1,26 @@
+//! # Day 4: Secure Container
+//!
+//! ## Problem Description
+//!
+//! Given a range of numbers and some rules, check how many numbers in
+//! that range fit the rules. Part 2 has a slight variation on one of
+//! the rules, but is otherwise the same. For both parts, the digits
+//! may never decrease from left to right. For Part 1, there must be
+//! some sequence of repeating digits. For Part 2 there must be a
+//! sequence of _exactly_ two repeating digits.
+//!
+//! ## Implementention details
+//!
+//! Unlike most other days, I just did parts 1 and 2 as the same
+//! function. For each number, I keep a Vec to store the size of
+//! sequences of digits, and iterate through its digits
+//! once. Immediately return false if there is a decrease. If the
+//! current digit is equal to the previous, increase the value of the
+//! last count in the Vec. If the current is greater than the
+//! previous, start counting a new sequence by pushing 1 into the
+//! Vec. After iterating, just need to go through te counts Vec and
+//! check password vailidity for both parts.
+
 use itertools::Itertools;
 use std::cmp::Ordering;
 

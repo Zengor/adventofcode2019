@@ -1,3 +1,21 @@
+//! Day 7: Amplification Circuit
+//!
+//! # Problem Description
+//!
+//! Another Intcode problem. This time you have to run 5 separate
+//! instances of the same program, where the output of one machine
+//! feeds into the next one. The idea is that the first input (called
+//! the "phase setting") of each machine is a number between 0 and 4
+//! given at the start of execution, and you have to find the
+//! combination which results into the highest total value at the end,
+//! where no phase setting may be shared between two machines.
+//!
+//! In part 1, machines only pass each other input once. In part
+//!
+//! #Implementation Details
+//!
+//!
+
 use super::intcode::IntcodeMachine;
 
 use std::ops::Range;

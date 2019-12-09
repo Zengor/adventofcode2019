@@ -1,3 +1,48 @@
+//! Day 6: Universal Orbit Map
+//!
+//! # Problem Description
+//!
+//! For part 1: given a list of orbital relationships (B orbits A),
+//! find the total number of "direct" and "indirect" orbits. That is,
+//! in a sequence (C orbits B, which orbits A), B directly orbits A; C
+//! directly orbits B and indirectly orbits A, for a total of 3
+//! orbits.
+//!
+//! In part 2, we are just supposed to find the shortest path between
+//! two nodes.
+//!
+//! #Implementation Details
+//!
+//! While this can be done with a tree, I implemented this as a graph
+//! using [`petgraph`](https://docs.rs/petgraph/0.4.13/petgraph/).
+//! This would have been quicker and simpler with a makeshift
+//! tree/graph implementation but I wanted to practice with `petgraph`
+//! as I had never used it before and think it might be useful in the
+//! future (not only for AOC).
+//!
+//! The hardest part of using petgraph was actually understanding how
+//! to build the graph. Other than that, it was hard to figure out
+//! which particular way the search for part 2 should be done, as it
+//! provides many different ways to do basic BFS/DFS without really
+//! indicating which is best in which situation.
+//!
+//! For part 1, the solution is just to do a topological sort (with
+//! the implementation given in `petgraph`, which I assume is just a
+//! DFS) and then walk backwards through the graph, storing the
+//! number of orbits of each planet in order. That way, when getting
+//! to planet C, which orbits B, the number of orbits for planet B is
+//! already known, and can just be added to the count for planet C.
+//!
+//! If done as a tree, I'd have just stored depth information for each
+//! node, which would already indicate its number of orbits.
+//!
+//! Part 2 turned out to be an advantage of doing this as a graph as
+//! all that had to be done was a BFS with an undirected version of
+//! the graph. As a tree, I would have done a recursive climb through
+//! the tree to find the common parent of the two nodes. The sum of
+//! the depth differences between the parent and the nodes is the
+//! distance between node YOU and SAN.
+
 use itertools::Itertools;
 use petgraph::{algo::toposort, prelude::*};
 

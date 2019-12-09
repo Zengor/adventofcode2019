@@ -1,6 +1,27 @@
+//! # Day 3: Crossed Wires
+//!
+//! ## Problem Description
+//!
+//! Given sequences of steps that form two wires in a grid, find the intersection
+//! of the wires that is closest to the center. In part 1, this is
+//! done by manhattan distance, in part 2 by signal distance (how long
+//! it takes the wire to get to that position).
+//!
+//! ## Implementention details
+//!
+//! Wires are created as a Vec containing all the points they cover in
+//! sequence. The wires are converted into HashSets to find all
+//! intersections, then the distance function is applied to those
+//! points to find the closest. For part 2, the distance is simply the
+//! index of that point in the Wire's Vec.
+//!
+//! I had done an implementation where in part 1 the wires were
+//! collected directly into a HashSet without going through the Vec
+//! first, but for some reason that turned out slower than creating
+//! the Vec first, then creating the HashSet from it.
+
 use itertools::Itertools;
 use std::collections::HashSet;
-use std::iter::FromIterator;
 
 fn dir_tuple(s: char) -> (i32, i32) {
     match s {
