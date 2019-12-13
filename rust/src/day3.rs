@@ -23,6 +23,8 @@
 use itertools::Itertools;
 use std::collections::HashSet;
 
+use crate::util::Point;
+
 fn dir_tuple(s: char) -> (i32, i32) {
     match s {
         'U' => (0, -1),
@@ -32,17 +34,7 @@ fn dir_tuple(s: char) -> (i32, i32) {
         _ => panic!("Invalid direction"),
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Point {
-    x: i32,
-    y: i32,
-}
 
-impl Point {
-    fn new(x: i32, y: i32) -> Self {
-        Point { x, y }
-    }
-}
 
 fn manhattan_dist(a: &Point, b: &Point) -> usize {
     ((a.x - b.x).abs() + (a.y - b.y).abs()) as usize
@@ -78,9 +70,7 @@ pub fn points_from_segments<'a>(segments: impl IntoIterator<Item = &'a str>) -> 
     Wire { points }
 }
 
-fn parse_wires<T>(input: &str) -> (Wire, Wire)
-where
-    T: FromIterator<Point>,
+fn parse_wires(input: &str) -> (Wire, Wire)
 {
     input
         .lines()
@@ -95,13 +85,14 @@ fn find_closest_intersection(a: &Wire, b: &Wire, dist: impl Fn(&Point) -> usize)
 }
 
 pub fn part1(input: &str) -> usize {
-    let (wire_a, wire_b) = parse_wires::<HashSet<Point>>(input);
+    let (wire_a, wire_b) = parse_wires(input);
     let origin = Point::new(0, 0);
     let dist = |p: &Point| manhattan_dist(&origin, p);
     find_closest_intersection(&wire_a, &wire_b, dist)
 }
+
 pub fn part2(input: &str) -> usize {
-    let (wire_a, wire_b) = parse_wires::<Vec<Point>>(input);
+    let (wire_a, wire_b) = parse_wires(input);
     let dist = |p: &Point| wire_a.dist_from_start(p) + wire_b.dist_from_start(p);
     find_closest_intersection(&wire_a, &wire_b, dist)
 }

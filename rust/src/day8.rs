@@ -1,18 +1,19 @@
-use itertools::{iproduct, Itertools};
-
-use std::collections::HashMap;
+use itertools::Itertools;
 
 const WIDTH: usize = 25;
 const HEIGHT: usize = 6;
 
 pub fn part1(input: &str) -> usize {
-    let digits = input.trim().chars().map(|c| c.to_digit(10).unwrap() as usize);
+    let digits = input
+        .trim()
+        .chars()
+        .map(|c| c.to_digit(10).unwrap() as usize);
     let layer_counts = digits
         .chunks(WIDTH * HEIGHT)
         .into_iter()
         .map(|layer| {
             // there are only 9 possible digits
-            let mut counts = vec![0;3];
+            let mut counts = vec![0; 3];
             for d in layer {
                 counts[d] += 1;
             }
@@ -56,19 +57,15 @@ pub fn part2(input: &str) {
     let num_layers = (image_len / WIDTH) * HEIGHT;
     //let mut layers = vec![Vec::with_capacity(image_len); num_layers];
 
-    let layers: Vec<PixelColor> = input
-        .trim()
-        .chars()
-        .map(PixelColor::from)
-        .collect();
-    
-    for i in 0..(WIDTH*HEIGHT)   {        
+    let layers: Vec<PixelColor> = input.trim().chars().map(PixelColor::from).collect();
+
+    for i in 0..(WIDTH * HEIGHT) {
         match get_color(&layers, i, num_layers) {
             PixelColor::Black => print!("▓"),
             PixelColor::White => print!("░"),
             PixelColor::Transparent => print!("  "),
         }
-        if (i+1) % WIDTH == 0 {
+        if (i + 1) % WIDTH == 0 {
             println!();
         }
     }
