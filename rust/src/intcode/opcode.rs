@@ -32,7 +32,6 @@ impl Opcode {
 
 }
 
-
 impl From<i64> for Opcode {
     fn from(code: i64) -> Self {
         use Opcode::*;

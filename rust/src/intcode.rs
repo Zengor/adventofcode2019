@@ -24,6 +24,15 @@ where
     machine.run_until_halt(input, output)
 }
 
+pub fn run_program_from_str<I, O>(codes: &str, input: &mut I, output: &mut O) -> i64
+where
+    I: IntcodeInput,
+    O: IntcodeOutput,
+{
+    let mut machine = IntcodeMachine::from_str(codes);
+    machine.run_until_halt(input, output)
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum ParameterMode {
     Position,
@@ -70,6 +79,15 @@ pub struct IntcodeMachine {
 impl<'a> IntcodeMachine {
     pub fn copy_program(codes: &[i64]) -> Self {
         let mem = Memory::with(codes);
+        Self {
+            stopped: false,
+            cursor: 0,
+            mem,
+        }
+    }
+
+    pub fn from_str(input: &str) -> Self {
+        let mem = Memory::from_str(input);
         Self {
             stopped: false,
             cursor: 0,
@@ -154,6 +172,14 @@ impl Memory {
         mem.mem.extend_from_slice(codes);
         mem.reserve_up_to(codes.len() + 2000);
         mem
+    }
+    pub fn from_str(input: &str) -> Self {
+        let mut mem: Vec<i64> = input.trim().split(",").map(|i| i.parse().unwrap()).collect();
+        mem.resize(mem.len() + 2000, 0);        
+        Self {
+            relative_base: 0,
+            mem
+        }
     }
 
     fn reserve_up_to(&mut self, pos: usize) {
