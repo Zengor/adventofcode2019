@@ -2,44 +2,8 @@ use itertools::Itertools;
 use std::collections::HashMap;
 
 use crate::intcode::IntcodeMachine;
+use crate::util::Direction;
 
-enum Direction {
-    Up,
-    Down,
-    Left,
-    Right,
-}
-
-impl Direction {
-    fn turn_right(&mut self) {
-        use Direction::*;
-        *self = match *self {
-            Up => Right,
-            Down => Left,
-            Left => Up,
-            Right => Down,
-        }
-    }
-    fn turn_left(&mut self) {
-        use Direction::*;
-        *self = match *self {
-            Up => Left,
-            Down => Right,
-            Left => Down,
-            Right => Up,
-        }
-    }
-
-    fn tuple(&self) -> (i32, i32) {
-        use Direction::*;
-        match *self {
-            Up => (0, -1),
-            Down => (0, 1),
-            Left => (-1, 0),
-            Right => (1, 0),
-        }
-    }
-}
 fn paint(mut program: IntcodeMachine, start_tile: i64) -> HashMap<(i32,i32),i64> {
     let mut pos = (0, 0);
     let mut facing_dir = Direction::Up;

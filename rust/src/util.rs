@@ -23,6 +23,45 @@ impl std::ops::Sub<Point> for Point {
     }
 }
 
+pub enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+impl Direction {    
+    pub fn turn_right(&mut self) {
+        use Direction::*;
+        *self = match *self {
+            Up => Right,
+            Down => Left,
+            Left => Up,
+            Right => Down,
+        }
+    }
+    pub fn turn_left(&mut self) {
+        use Direction::*;
+        *self = match *self {
+            Up => Left,
+            Down => Right,
+            Left => Down,
+            Right => Up,
+        }
+    }
+
+    pub fn tuple(&self) -> (i32, i32) {
+        use Direction::*;
+        match *self {
+            Up => (0, -1),
+            Down => (0, 1),
+            Left => (-1, 0),
+            Right => (1, 0),
+        }
+    }
+}
+
+
 pub fn gcd(mut a: i64, mut b: i64) -> i64 {
     while b != 0 {
         let old_b = b;
