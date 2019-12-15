@@ -2,6 +2,8 @@ use itertools::Itertools;
 
 use std::collections::HashSet;
 
+use crate::util::lcm;
+
 fn axis_change(a: i32, b: i32) -> (i32, i32) {
     use std::cmp::Ordering::*;
     match a.cmp(&b) {
@@ -62,18 +64,6 @@ pub fn part1(input: &str) -> i32 {
         .sum()
 }
 
-fn gcd(mut a: i64, mut b: i64) -> i64 {
-    while b != 0 {
-        let old_b = b;
-        b = a % b;
-        a = old_b;
-    }
-    a
-}
-
-fn lcm(a: i64, b: i64) -> i64 {
-    (a * b).abs() / gcd(a, b)
-}
 
 pub fn part2(input: &str) -> i64 {
     let (x_positions, y_positions, z_positions) = get_position_axes(input);
