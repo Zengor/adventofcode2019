@@ -44,13 +44,12 @@ impl Instruction {
     {
         let f = match self.opcode {
             Opcode::Input => {
-                let input: &str = &match input.read_line() {
+                let input = match input.read() {
                     Some(s) => s,
                     None => return Err("Out of Input".to_owned()),
                 };
-                let in_value = input.trim().parse().expect("failed parse input");
                 let dest = &self.params[0];
-                *dest.find_mut(memory) = in_value;
+                *dest.find_mut(memory) = input;
                 return Ok(());
             }
             Opcode::Output => {

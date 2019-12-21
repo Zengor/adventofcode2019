@@ -29,7 +29,6 @@ impl Opcode {
             _ => 1 + self.num_params(),
         }
     }
-
 }
 
 impl From<i64> for Opcode {

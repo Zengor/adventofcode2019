@@ -1,7 +1,7 @@
-use std::io::{Write};
+use std::io::Write;
 
 pub trait IntcodeInput {
-    fn read_line(&mut self) -> Option<String>;
+    fn read(&mut self) -> Option<i64>;
 }
 
 pub trait IntcodeOutput {
@@ -9,35 +9,41 @@ pub trait IntcodeOutput {
 }
 
 impl IntcodeInput for std::io::Empty {
-    fn read_line(&mut self) -> Option<String> {
+    fn read(&mut self) -> Option<i64> {
         None
     }
 }
 
 impl IntcodeInput for std::io::Lines<std::io::StdinLock<'_>> {
-    fn read_line(&mut self) -> Option<String> {
-        self.next()?.ok()
+    fn read(&mut self) -> Option<i64> {
+        self.next()?.ok()?.parse().ok()
     }
 }
 
 impl IntcodeInput for &str {
-    fn read_line(&mut self) -> Option<String> {
-        Some(self.lines().next()?.to_owned())
+    fn read(&mut self) -> Option<i64> {
+        self.lines().next()?.parse().ok()
     }
 }
 
 impl IntcodeInput for Vec<i64> {
-    fn read_line(&mut self) -> Option<String> {
+    fn read(&mut self) -> Option<i64> {
         if self.len() == 0 {
             return None;
         }
-        Some(self.remove(0).to_string())
+        Some(self.remove(0))
     }
 }
 
 impl IntcodeInput for Option<i64> {
-    fn read_line(&mut self) -> Option<String> {
-        self.take().map(|i| i.to_string())
+    fn read(&mut self) -> Option<i64> {
+        self.take()
+    }
+}
+
+impl IntcodeInput for std::iter::Repeat<i64> {
+    fn read(&mut self) -> Option<i64> {
+        self.next()
     }
 }
 
@@ -64,3 +70,13 @@ impl IntcodeOutput for Option<i64> {
     }
 }
 
+pub struct IOWrapper<'a> {
+    inner: &'a [i64],
+    cursor: usize,
+}
+
+impl<'a> IntcodeInput for IOWrapper<'a> {
+    fn read(&mut self) -> Option<i64> {
+        unimplemented!()
+    }
+}

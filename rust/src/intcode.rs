@@ -8,7 +8,7 @@ pub use instruction::Instruction;
 pub use io::{IntcodeInput, IntcodeOutput};
 pub use opcode::Opcode;
 
-pub fn run_program_no_in(codes: &[i64]) -> i64{
+pub fn run_program_no_in(codes: &[i64]) -> i64 {
     // setting up an empty input as this function assumes programs witn no
     // input (eg for day 2, mostly)
     let mut input = std::io::empty();
@@ -52,7 +52,7 @@ impl Parameter {
         let pos = match self.0 {
             Position => self.1,
             Relative => memory.relative_base + self.1,
-            Immediate => unreachable!()
+            Immediate => unreachable!(),
         };
         memory.get(pos)
     }
@@ -64,12 +64,13 @@ impl Parameter {
         let pos = match self.0 {
             Position => self.1,
             Relative => memory.relative_base + self.1,
-            Immediate => unreachable!()
+            Immediate => unreachable!(),
         };
         memory.get_mut(pos)
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct IntcodeMachine {
     stopped: bool,
     cursor: usize,
@@ -149,22 +150,20 @@ impl<'a> IntcodeMachine {
         self.cursor += instruction.opcode.cursor_change();
         Ok(())
     }
-
 }
 
-
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct Memory {
     pub relative_base: i64,
-    mem: Vec<i64>
+    mem: Vec<i64>,
 }
 
 impl Memory {
     pub fn with_capacity(capacity: usize) -> Self {
         let mem = Vec::with_capacity(capacity);
-         Self {
+        Self {
             relative_base: 0,
-            mem
+            mem,
         }
     }
     pub fn with(codes: &[i64]) -> Self {
@@ -174,11 +173,15 @@ impl Memory {
         mem
     }
     pub fn from_str(input: &str) -> Self {
-        let mut mem: Vec<i64> = input.trim().split(",").map(|i| i.parse().unwrap()).collect();
-        mem.resize(mem.len() + 2000, 0);        
+        let mut mem: Vec<i64> = input
+            .trim()
+            .split(",")
+            .map(|i| i.parse().unwrap())
+            .collect();
+        mem.resize(mem.len() + 2000, 0);
         Self {
             relative_base: 0,
-            mem
+            mem,
         }
     }
 
@@ -188,13 +191,13 @@ impl Memory {
             self.mem.resize(new_len, 0);
         }
     }
-    
+
     fn get(&mut self, pos: i64) -> i64 {
         let pos = pos as usize;
         self.reserve_up_to(pos);
         self.mem[pos]
     }
-    
+
     fn get_mut(&mut self, pos: i64) -> &mut i64 {
         let pos = pos as usize;
         self.reserve_up_to(pos);
@@ -210,8 +213,7 @@ impl std::ops::Index<usize> for Memory {
 }
 impl std::ops::Index<i64> for Memory {
     type Output = i64;
-    fn index(&self, idx: i64) -> &i64 {        
+    fn index(&self, idx: i64) -> &i64 {
         &self.mem[idx as usize]
     }
 }
-
