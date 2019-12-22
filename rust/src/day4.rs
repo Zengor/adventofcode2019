@@ -26,7 +26,7 @@ use std::cmp::Ordering;
 
 const DIGIT_OFFSETS: &'static [u32] = &[1, 10, 100, 1000, 10000, 100000];
 
-fn get_digits(num: u32) -> impl Iterator<Item=u32> {
+fn get_digits(num: u32) -> impl Iterator<Item = u32> {
     (0..5).rev().map(move |i| (num / DIGIT_OFFSETS[i]) % 10)
 }
 

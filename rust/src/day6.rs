@@ -89,8 +89,7 @@ pub fn part1(input: &str) -> u32 {
     orbit_counts.values().sum()
 }
 pub fn part1_graphmap(input: &str) -> u32 {
-    let
-        graph = parse_graphmap::<petgraph::Directed>(input);    
+    let graph = parse_graphmap::<petgraph::Directed>(input);
     let sorted = toposort(&graph, None).unwrap();
     let orbit_counts = sorted
         .iter()

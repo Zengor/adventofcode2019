@@ -152,7 +152,6 @@ fn run_robots(program: IntcodeMachine) -> RobotMemory {
     let dirs = [Up, Down, Left, Right];
     while let Some(robot) = queue.pop_front() {
         let (u, d, l, r) = map_memory.surrounding_occupancy(robot.pos);
-        println!("robot {:?}", robot.pos);
         for (&dir, neighbor) in dirs.iter().zip([u, d, l, r].into_iter()) {
             // only walk into unknown territory
             if let Occupancy::Unknown = neighbor {
@@ -174,29 +173,6 @@ fn run_robots(program: IntcodeMachine) -> RobotMemory {
 pub fn part1(input: &str) -> u32 {
     let program = IntcodeMachine::from_str(input);
     let memory = run_robots(program);
-    for (pos, n) in memory.idx_map.iter().sorted_by_key(|(pos, _)| *pos) {
-        println!("{:?} {:?} {:?}", pos, memory.get(*pos), n)
-    }
-    let map = iproduct!(0..50, 0..50).map(|(x, y)| {
-        if x == 25 && y == 25 {
-            return "!";
-        }
-
-        match memory.get((x, y)) {
-            Occupancy::Unknown => " ",
-            Occupancy::Empty => ".",
-            Occupancy::Wall => "#",
-            Occupancy::Oxygen => "o",
-        }
-    });
-    for (i, c) in map.enumerate() {
-        print!("{}", c);
-        if i % 50 == 0 {
-            println!()
-        }
-    }
-    println!();
-    
     let start = memory.idx_map[&(25,25)];
     let end = memory.get_oxygen_node().unwrap();
     petgraph::algo::astar(&memory.graph, start, |n| n == end, |_| 1, |_| 0).unwrap().0

@@ -1,7 +1,5 @@
 use itertools::Itertools;
 
-use std::collections::HashSet;
-
 use crate::util::lcm;
 
 fn axis_change(a: i32, b: i32) -> (i32, i32) {
@@ -63,7 +61,6 @@ pub fn part1(input: &str) -> i32 {
         })
         .sum()
 }
-
 
 pub fn part2(input: &str) -> i64 {
     let (x_positions, y_positions, z_positions) = get_position_axes(input);

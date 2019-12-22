@@ -35,7 +35,6 @@ fn dir_tuple(s: char) -> (i32, i32) {
     }
 }
 
-
 fn manhattan_dist(a: &Point, b: &Point) -> usize {
     ((a.x - b.x).abs() + (a.y - b.y).abs()) as usize
 }
@@ -70,8 +69,7 @@ pub fn points_from_segments<'a>(segments: impl IntoIterator<Item = &'a str>) -> 
     Wire { points }
 }
 
-fn parse_wires(input: &str) -> (Wire, Wire)
-{
+fn parse_wires(input: &str) -> (Wire, Wire) {
     input
         .lines()
         .map(|w| points_from_segments(w.split(',')))

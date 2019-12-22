@@ -22,7 +22,6 @@ use std::ops::Range;
 
 use itertools::Itertools;
 
-    
 fn find_max_thruster(input: &str, setting_range: Range<i64>, loop_limit: usize) -> i64 {
     let codes: Vec<i64> = input
         .trim()
@@ -57,7 +56,7 @@ fn amp_exec(codes: &[i64], phases: Vec<i64>, loop_limit: usize) -> i64 {
         }
         input = out;
     }
-    
+
     out.unwrap()
 }
 

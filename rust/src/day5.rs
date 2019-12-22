@@ -22,7 +22,7 @@ pub fn part1(input: &str) -> i64 {
         .map(|s| s.parse().unwrap())
         .collect();
     //let stdin = std::io::stdin();
-    //let input = stdin.lock().lines();    
+    //let input = stdin.lock().lines();
     intcode::run_program(&mut codes, &mut "1", &mut std::io::sink());
     codes[0]
 }

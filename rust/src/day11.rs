@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use crate::intcode::IntcodeMachine;
 use crate::util::Direction;
 
-fn paint(mut program: IntcodeMachine, start_tile: i64) -> HashMap<(i32,i32),i64> {
+fn paint(mut program: IntcodeMachine, start_tile: i64) -> HashMap<(i32, i32), i64> {
     let mut pos = (0, 0);
     let mut facing_dir = Direction::Up;
     let mut painted_tiles: HashMap<(i32, i32), i64> = HashMap::new();
@@ -37,21 +37,24 @@ pub fn part1(input: &str) -> usize {
 pub fn part2(input: &str) {
     let program = IntcodeMachine::from_str(input);
     let painted_tiles = paint(program, 1);
-    
-    let mut sorted = painted_tiles.keys().sorted_by(|a, b| {
-        use std::cmp::Ordering::*;
-        match (a.0.cmp(&b.0), a.1.cmp(&b.1)) {
-            (x, Equal) => x,
-            (_, y) => y,
-        }
-    }).peekable();
-    
+
+    let mut sorted = painted_tiles
+        .keys()
+        .sorted_by(|a, b| {
+            use std::cmp::Ordering::*;
+            match (a.0.cmp(&b.0), a.1.cmp(&b.1)) {
+                (x, Equal) => x,
+                (_, y) => y,
+            }
+        })
+        .peekable();
+
     let leftmost = *sorted.peek().unwrap();
     for (_, line) in &sorted.group_by(|k| k.1) {
         let mut x = leftmost.0;
         for p in line {
             while x <= p.0 {
-                match painted_tiles.get(p).unwrap_or(&0){
+                match painted_tiles.get(p).unwrap_or(&0) {
                     0 => print!("░"),
                     1 => print!("▓"),
                     _ => panic!(),

@@ -1,17 +1,16 @@
 use itertools::join;
 use std::iter::repeat;
 
-
 /// Returns iterator for the pattern of a given digit with position
 /// `i`.  Unlike what is described in the problem, this pattern starts
 /// with the first 1, and as such is intended for use with the i-th
 /// digit of the input.
 fn find_pattern(digit: usize) -> impl Iterator<Item = i32> {
     let pattern = repeat(1)
-        .take(digit+1)
-        .chain(repeat(0).take(digit+1))
-        .chain(repeat(-1).take(digit+1))
-        .chain(repeat(0).take(digit+1));
+        .take(digit + 1)
+        .chain(repeat(0).take(digit + 1))
+        .chain(repeat(-1).take(digit + 1))
+        .chain(repeat(0).take(digit + 1));
     pattern.cycle()
 }
 
@@ -54,11 +53,11 @@ pub fn part2(input: &str) -> String {
         .take(10_000)
         .flatten()
         .skip(msg_offset)
-        .collect();    
+        .collect();
     let size = digits.len();
     for _phase in 0..100 {
-        for i in (0..size-1).rev() {
-            digits[i] += digits[i+1];
+        for i in (0..size - 1).rev() {
+            digits[i] += digits[i + 1];
         }
         digits.iter_mut().for_each(|x| *x %= 10);
     }

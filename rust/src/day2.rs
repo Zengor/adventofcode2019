@@ -17,7 +17,6 @@
 //! to a separate module. There isn't much to say about this day
 //! specifically.
 
-
 use super::intcode::*;
 
 pub fn part1(input: &str) -> i64 {
@@ -46,11 +45,11 @@ pub fn part2(input: &str) -> i64 {
         .split(",")
         .map(|s| s.parse().unwrap())
         .collect();
-    for (noun, verb) in iproduct!((0..=99), (0..=99)) {        
+    for (noun, verb) in iproduct!((0..=99), (0..=99)) {
         let result = try_inputs(noun, verb, codes.clone());
-        if result == desired_output {                       
-            return 100 * noun + verb
+        if result == desired_output {
+            return 100 * noun + verb;
         }
     }
-    unreachable!("It's assumed the puzzle will have _a_ valid solution");    
+    unreachable!("It's assumed the puzzle will have _a_ valid solution");
 }
