@@ -137,7 +137,7 @@ impl RobotMemory {
 }
 
 fn run_robots(program: IntcodeMachine) -> RobotMemory {
-        // creating a suitably large memory -- the size of the area is unknown
+    // creating a suitably large memory -- the size of the area is unknown
     // but it's assumed to not be incredibly large
     let mut map_memory = RobotMemory::new(50);
     let origin = Robot {
@@ -168,14 +168,15 @@ fn run_robots(program: IntcodeMachine) -> RobotMemory {
         }
     }
     map_memory
-
 }
 pub fn part1(input: &str) -> u32 {
     let program = IntcodeMachine::from_str(input);
     let memory = run_robots(program);
-    let start = memory.idx_map[&(25,25)];
+    let start = memory.idx_map[&(25, 25)];
     let end = memory.get_oxygen_node().unwrap();
-    petgraph::algo::astar(&memory.graph, start, |n| n == end, |_| 1, |_| 0).unwrap().0
+    petgraph::algo::astar(&memory.graph, start, |n| n == end, |_| 1, |_| 0)
+        .unwrap()
+        .0
 }
 
 pub fn part2(input: &str) -> u32 {

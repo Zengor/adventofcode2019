@@ -1,4 +1,4 @@
-use super::{IntcodeInput, IntcodeOutput, Memory, Opcode, Parameter, ParameterMode};
+use super::{Memory, Opcode, Parameter, ParameterMode};
 
 const DIGIT_OFFSETS: &'static [i64] = &[1, 10, 100, 1000, 10000];
 fn get_digit(num: i64, i: usize) -> i64 {
@@ -31,31 +31,8 @@ impl Instruction {
         Instruction { opcode, params }
     }
 
-    pub(super) fn execute<I, O>(
-        &self,
-        cursor: &mut usize,
-        memory: &mut Memory,
-        input: &mut I,
-        output: &mut O,
-    ) -> Result<(), String>
-    where
-        I: IntcodeInput,
-        O: IntcodeOutput,
-    {
+    pub(super) fn execute(&self, cursor: &mut usize, memory: &mut Memory) {
         let f = match self.opcode {
-            Opcode::Input => {
-                let input = match input.read() {
-                    Some(s) => s,
-                    None => return Err("Out of Input".to_owned()),
-                };
-                let dest = &self.params[0];
-                *dest.find_mut(memory) = input;
-                return Ok(());
-            }
-            Opcode::Output => {
-                output.write(self.params[0].find(memory));
-                return Ok(());
-            }
             Opcode::Halt => {
                 unreachable!("Should be impossible: Halt is checked before this function")
             }
@@ -66,9 +43,10 @@ impl Instruction {
             Opcode::LessThan => ops::lt,
             Opcode::Equals => ops::eq,
             Opcode::MoveRelative => ops::mov_rel,
+            // Halt, Input, and Output are handled by the machine
+            _ => panic!("Tried operating on invalid/IO function"),
         };
         f(&self.params, memory, cursor);
-        Ok(())
     }
 }
 

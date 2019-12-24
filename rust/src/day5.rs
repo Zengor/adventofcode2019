@@ -13,18 +13,12 @@
 //! This is when I moved the intcode stuff to a separate model which
 //! can be day-agnostic. See [intcode] for more information.
 
-use super::intcode;
+use crate::intcode;
 
 pub fn part1(input: &str) -> i64 {
-    let mut codes: Vec<i64> = input
-        .trim()
-        .split(",")
-        .map(|s| s.parse().unwrap())
-        .collect();
     //let stdin = std::io::stdin();
     //let input = stdin.lock().lines();
-    intcode::run_program(&mut codes, &mut "1", &mut std::io::sink());
-    codes[0]
+    intcode::run_from_str(input, &mut Some(1), &mut std::io::sink())
 }
 
 pub fn part2(input: &str) -> i64 {
@@ -35,6 +29,5 @@ pub fn part2(input: &str) -> i64 {
         .collect();
     //let stdin = std::io::stdin();
     //let input = stdin.lock().lines();
-    intcode::run_program(&mut codes, &mut "5", &mut std::io::sink());
-    codes[0]
+    intcode::run_from_str(input, &mut Some(5), &mut std::io::sink())
 }

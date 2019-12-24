@@ -140,6 +140,12 @@ impl<T> Matrix<T> {
     pub fn push(&mut self, value: T) {
         self.data.push(value);
     }
+
+    /// Provides a view into the inner vector, e.g. for cases where all
+    /// elements need to be iterated in order
+    pub fn inner(&self) -> &[T] {
+        &self.data
+    }
 }
 
 impl<T: Clone> Matrix<T> {

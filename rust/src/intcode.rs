@@ -8,29 +8,25 @@ pub use instruction::Instruction;
 pub use io::{IntcodeInput, IntcodeOutput};
 pub use opcode::Opcode;
 
-pub fn run_program_no_in(codes: &[i64]) -> i64 {
-    // setting up an empty input as this function assumes programs witn no
-    // input (eg for day 2, mostly)
-    let mut input = std::io::empty();
-    run_program(codes, &mut input, &mut sink())
-}
-
-pub fn run_program<I, O>(codes: &[i64], input: &mut I, output: &mut O) -> i64
-where
-    I: IntcodeInput,
-    O: IntcodeOutput,
-{
+/// Convenience function for early days to just run a program with no
+/// I/O, returning the value at memory position 0 at the end.
+pub fn run_program_no_io(codes: &[i64]) -> i64 {
+    let input = &mut std::io::empty();
+    let output = &mut std::io::sink();
+    
     let mut machine = IntcodeMachine::copy_program(codes);
-    machine.run_until_halt(input, output)
+    machine.run_no_io();
+    machine.get(0)
 }
 
-pub fn run_program_from_str<I, O>(codes: &str, input: &mut I, output: &mut O) -> i64
+pub fn run_from_str<I, O>(codes: &str, input: &mut I, output: &mut O) -> i64
 where
     I: IntcodeInput,
     O: IntcodeOutput,
 {
     let mut machine = IntcodeMachine::from_str(codes);
-    machine.run_until_halt(input, output)
+    machine.run(input, output);
+    machine.get(0)
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -70,6 +66,13 @@ impl Parameter {
     }
 }
 
+pub enum RunResult {
+    Stop,
+    Continue,
+    InputRequest,
+    Output,
+}
+
 #[derive(Debug, Clone)]
 pub struct IntcodeMachine {
     stopped: bool,
@@ -96,6 +99,10 @@ impl<'a> IntcodeMachine {
         }
     }
 
+    pub fn get(&self, i: usize) -> i64 {
+        self.mem.mem[i]
+    }
+
     pub fn is_stopped(&self) -> bool {
         self.stopped
     }
@@ -105,50 +112,98 @@ impl<'a> IntcodeMachine {
         self.cursor = 0;
     }
 
-    pub fn run_until_halt<I, O>(&mut self, input: &mut I, output: &mut O) -> i64
-    where
-        I: IntcodeInput,
-        O: IntcodeOutput,
-    {
-        while !self.stopped {
-            self.step(input, output).unwrap();
-        }
-        self.mem[0usize]
+    pub fn run_no_io(&mut self) -> RunResult {
+        self.run(&mut std::io::empty(), &mut std::io::sink())
     }
-    // runs with given input until it's empty
-    // (runs indefinitely with sink
-    pub fn run_while_input<I, O>(&mut self, input: &mut I, output: &mut O)
+
+    pub fn run<I, O>(&mut self, input: &mut I, output: &mut O) -> RunResult
     where
         I: IntcodeInput,
         O: IntcodeOutput,
     {
         while !self.stopped {
             match self.step(input, output) {
-                Ok(()) => (),
-                Err(_) => {
-                    return;
-                }
-            };
+                r @ RunResult::InputRequest => return r,
+                _ => (),
+            }
         }
+        RunResult::Stop
     }
-
-    pub fn step<I, O>(&mut self, input: &mut I, output: &mut O) -> Result<(), String>
+    
+    /// Runs the machine with specified input. When the input is empty _and_ a instruction
+    /// requires additional input, it will stop. Otherwise, runs until end
+    pub fn run_while_input<I, O>(&mut self, input: &mut I, output: &mut O) -> RunResult
     where
         I: IntcodeInput,
         O: IntcodeOutput,
     {
-        let instruction = Instruction::create(self.cursor, &mut self.mem);
-        // println!("cursor: {}, {:?}", self.cursor, instruction);
+        while !self.stopped {
+            match self.step(input, output) {
+                r @ RunResult::InputRequest => return r,
+                _ => (),
+            }
+        }
+        RunResult::Stop
+    }
+
+    /// Runs the machine with specified input, stopping after the
+    /// first input instruction. This doesn't assume the very next
+    /// instruction will be an input instruction, running normally
+    /// until input is consumed exactly once. However, the program may
+    /// theoretically still halt. This is intended mostly to be a
+    /// convenience way to queue some initializer input to the machine.
+    pub fn run_single_input<I, O>(&mut self, input: &mut I, output: &mut O) -> RunResult
+    where
+        I: IntcodeInput,
+        O: IntcodeOutput,
+    {
+        while !self.stopped {
+            // a little bit of a hack: check if current instruction
+            // will be an input instruction
+            let is_input = self.mem.mem[self.cursor] == 3;
+            self.step(input, output);
+            if is_input {
+                return RunResult::Continue;
+            }
+        }
+        RunResult::Stop
+    }
+
+    pub fn step<I, O>(&mut self, input: &mut I, output: &mut O) -> RunResult
+    where
+        I: IntcodeInput,
+        O: IntcodeOutput,
+    {
         if self.stopped {
-            return Err("Program Halted".into());
+            return RunResult::Stop;
         }
-        if instruction.opcode == Opcode::Halt {
-            self.stopped = true;
-            return Ok(());
+        let instruction = Instruction::create(self.cursor, &mut self.mem);
+        match instruction.opcode {
+            Opcode::Halt => {
+                self.stopped = true;
+                return RunResult::Stop;
+            }
+            Opcode::Input => {
+                let input = match input.read() {
+                    Some(i) => i,
+                    None => return RunResult::InputRequest,
+                };
+                let dest = &instruction.params[0];
+                *dest.find_mut(&mut self.mem) = input;
+            }
+            Opcode::Output => {
+                let out = instruction.params[0].find(&mut self.mem);
+                self.cursor += instruction.opcode.cursor_change();
+                output.write(out);
+                return RunResult::Output;
+            }
+            _ => {
+                instruction.execute(&mut self.cursor, &mut self.mem);
+            }
         }
-        instruction.execute(&mut self.cursor, &mut self.mem, input, output)?;
+
         self.cursor += instruction.opcode.cursor_change();
-        Ok(())
+        return RunResult::Continue;
     }
 }
 
@@ -167,9 +222,9 @@ impl Memory {
         }
     }
     pub fn with(codes: &[i64]) -> Self {
-        let mut mem = Self::with_capacity(codes.len() + 2000);
+        let mut mem = Self::with_capacity(codes.len() + 3000);
         mem.mem.extend_from_slice(codes);
-        mem.reserve_up_to(codes.len() + 2000);
+        mem.reserve_up_to(codes.len() + 3000);
         mem
     }
     pub fn from_str(input: &str) -> Self {
@@ -186,8 +241,8 @@ impl Memory {
     }
 
     fn reserve_up_to(&mut self, pos: usize) {
-        if pos > self.mem.len() {
-            let new_len = self.mem.len() + (pos - self.mem.len());
+        if pos >= self.mem.len() {
+            let new_len = self.mem.len() + (pos + 1 - self.mem.len());
             self.mem.resize(new_len, 0);
         }
     }

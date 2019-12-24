@@ -43,7 +43,7 @@ fn amp_exec(codes: &[i64], phases: Vec<i64>, loop_limit: usize) -> i64 {
     let mut machines: Vec<_> = (0..len)
         .map(|_| {
             let mut m = IntcodeMachine::copy_program(&codes);
-            m.step(&mut phases.next(), &mut std::io::sink()).unwrap();
+            m.step(&mut phases.next(), &mut std::io::sink());
             m
         })
         .collect();

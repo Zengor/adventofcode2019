@@ -1,4 +1,4 @@
-use crate::{intcode::run_program_from_str, util::Matrix};
+use crate::{intcode::{IntcodeMachine, run_from_str}, util::Matrix};
 use itertools::iproduct;
 
 fn surrounding(
@@ -18,13 +18,11 @@ const NEWLINE: i64 = '\n' as i64;
 
 pub fn part1(input: &str) -> usize {
     let mut screen = Vec::with_capacity(3000);
-    run_program_from_str(input, &mut std::io::empty(), &mut screen);
-    let s: String = screen.iter().map(|i| (*i as u8) as char).collect();
-    println!("{}", s);
+    run_from_str(input, &mut std::io::empty(), &mut screen);
     let line_width = screen.iter().position(|c| *c == NEWLINE).unwrap() + 1;
     let grid = Matrix::wrap(screen, line_width);
     let mut alignment_sum = 0;
-    for (x, y) in iproduct!(1..grid.width() - 1, 1..grid.height() - 1) {
+    for (y, x) in iproduct!(1..grid.width() - 1, 1..grid.height() - 1) {
         if grid[(x, y)] == ROPE {
             let (u, d, l, r) = surrounding(x, y);
             if grid[u] == ROPE && grid[d] == ROPE && grid[l] == ROPE && grid[r] == ROPE {
@@ -42,7 +40,7 @@ pub fn part2(input: &str) -> i64 {
         .map(|i| i.parse().unwrap())
         .collect();
     source_code[0] = 2;
-    let mut machine = crate::intcode::IntcodeMachine::copy_program(&source_code);
+    let mut machine = IntcodeMachine::copy_program(&source_code);
     let a_routine = "L,10,R,8,L,6,R,6\n";
     let b_routine = "L,8,L,8,R,8\n";
     let c_routine = "R,8,L,6,L,10,L,10\n";
@@ -55,6 +53,6 @@ pub fn part2(input: &str) -> i64 {
     full += "n\n";
     let mut robot_input: Vec<i64> = full.chars().map(|c| c as i64).collect();
     let mut out = Vec::new();
-    machine.run_while_input(&mut robot_input, &mut out);
+    machine.run(&mut robot_input, &mut out);
     *out.last().unwrap()
 }
