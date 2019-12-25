@@ -80,7 +80,7 @@ pub fn gcd(mut a: i64, mut b: i64) -> i64 {
 /// Panics if it doesn't exist.
 ///
 /// Based on https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm#Modular_integers
-pub fn modular_inverse(mut a: i64, mut b: i64) -> i64 {
+pub fn modular_inverse(a: i64, b: i64) -> i64 {
     let (mut t_k, mut t_next) = (0,1);
     let (mut r_k, mut r_next) = (b,a);
     while r_next != 0 {

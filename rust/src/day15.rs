@@ -1,4 +1,4 @@
-use itertools::{iproduct, Itertools};
+use itertools::iproduct;
 use petgraph::prelude::*;
 use std::collections::{HashMap, VecDeque};
 
@@ -127,12 +127,7 @@ impl RobotMemory {
         pos: (i32, i32),
     ) -> (Occupancy, Occupancy, Occupancy, Occupancy) {
         let (u, d, l, r) = surrounding(pos.0, pos.1);
-        (
-            self.graph[self.idx_map[&u]],
-            self.graph[self.idx_map[&d]],
-            self.graph[self.idx_map[&l]],
-            self.graph[self.idx_map[&r]],
-        )
+        (self.get(u), self.get(d), self.get(l), self.get(r))
     }
 }
 
