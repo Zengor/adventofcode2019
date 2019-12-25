@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::{collections::VecDeque, io::Write};
 
 pub trait IntcodeInput {
     fn read(&mut self) -> Option<i64>;
@@ -70,13 +70,39 @@ impl IntcodeOutput for Option<i64> {
     }
 }
 
-pub struct IOWrapper<'a> {
-    inner: &'a [i64],
-    cursor: usize,
+pub struct AsciiTranslator {
+    string: std::collections::VecDeque<char>,
 }
 
-impl<'a> IntcodeInput for IOWrapper<'a> {
+impl AsciiTranslator {
+    pub fn new() -> Self {
+        Self {
+            string: VecDeque::new(),
+        }
+    }
+
+    pub fn clear(&mut self) {
+        self.string.clear();
+    }
+
+    pub fn push_string(&mut self, s: String) {
+        self.string.extend(s.chars());
+        self.string.push_back('\n');
+    }
+
+    pub fn drain_string(&mut self) -> String {
+        self.string.drain(..).collect()
+    }
+}
+
+impl IntcodeInput for AsciiTranslator {
     fn read(&mut self) -> Option<i64> {
-        unimplemented!()
+        self.string.pop_front().map(|c| c as i64)
+    }
+}
+
+impl IntcodeOutput for AsciiTranslator {
+    fn write(&mut self, out: i64) {
+        self.string.push_back(out as u8 as char)
     }
 }

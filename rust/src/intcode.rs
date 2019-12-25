@@ -1,19 +1,14 @@
-use std::io::sink;
-
 mod instruction;
 mod io;
 mod opcode;
 
 pub use instruction::Instruction;
-pub use io::{IntcodeInput, IntcodeOutput};
+pub use io::{IntcodeInput, IntcodeOutput, AsciiTranslator};
 pub use opcode::Opcode;
 
 /// Convenience function for early days to just run a program with no
 /// I/O, returning the value at memory position 0 at the end.
 pub fn run_program_no_io(codes: &[i64]) -> i64 {
-    let input = &mut std::io::empty();
-    let output = &mut std::io::sink();
-    
     let mut machine = IntcodeMachine::copy_program(codes);
     machine.run_no_io();
     machine.get(0)
