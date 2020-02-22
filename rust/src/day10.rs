@@ -1,32 +1,23 @@
 //use util::Point;
 use crate::util::{gcd, Point};
-use itertools::Itertools;
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
 
 fn simplify(x: i32, y: i32) -> (i32, i32) {
     let divisor = gcd(x as i64, y as i64).abs();
     (x / divisor as i32, y / divisor as i32)
 }
 
-// using the same function for part 1 and part 2, so this needs to
+// Using the same function for part 1 and part 2, so this needs to
 // return all other asteroids that are visible at a given angle. This
 // is not necessary for part 1, as all it needs is how many separate
 // angles have any visible asteroids at all so for a part1-only
 // solution it would be more space efficient to just use a hashset of
 // angles.
 fn get_visible<'a>(asteroid: &Point, field: &'a [Point]) -> HashMap<(i32, i32), Vec<Point>> {
-    let print = false; //asteroid.x == 26 && asteroid.y == 36;
     let mut vis: HashMap<(_, _), Vec<Point>> = HashMap::new();
     for other in field.iter().filter(|&o| o != asteroid) {
         let angle = simplify(other.x - asteroid.x, other.y - asteroid.y);
-
-        if print {
-            println!("{:?}, {:?}", other, angle);
-        }
         vis.entry(angle).or_default().push(other.clone());
-    }
-    if print {
-        println!("{}", vis.len());
     }
     vis
 }
