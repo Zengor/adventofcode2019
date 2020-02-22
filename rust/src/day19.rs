@@ -36,16 +36,17 @@ pub fn part2(input: &str) -> i64 {
         program: IntcodeMachine::from_str(input),
     };
     // given this example (looking for a 4x4)
-    // . . . . B
-    // . . . . .
-    //   . . . . .
-    //   A . . . . .
+    // # # # # B . .
+    // # # # # # . .
+    // . # # # # # .
+    // . A # # # # #
     // we're walking until we find an A such that B is also within the beam.
 
     // starting at y = 99 because the square has to be 100 tall
     let (mut x, mut y) = (0, 99);
     loop {
-        // continue walking right until a filled in this line
+        // continue walking right until a tile within the beam is
+        // found in this line
         if !detector.within_beam(x, y) {
             x += 1;
             continue;
@@ -56,7 +57,7 @@ pub fn part2(input: &str) -> i64 {
             continue;
         }
         // the answer is based on the x,y of the top left, so we have
-        // to reduce y to get the right value
+        // to subtract from y to get the right value
         return 10000 * x + y - 99;
     }
 }

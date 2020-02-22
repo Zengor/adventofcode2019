@@ -18,8 +18,8 @@
 //! current digit is equal to the previous, increase the value of the
 //! last count in the Vec. If the current is greater than the
 //! previous, start counting a new sequence by pushing 1 into the
-//! Vec. After iterating, just need to go through te counts Vec and
-//! check password vailidity for both parts.
+//! Vec. After iterating, just need to go through the counts Vec and
+//! check password validity for both parts.
 
 use itertools::Itertools;
 use std::cmp::Ordering;

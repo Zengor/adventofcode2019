@@ -20,7 +20,7 @@ fn hack(mut source: Vec<i64>) -> Vec<i64> {
     const PADDLE: i64 = 3;
     // the tiles are just explicitly laid out in the code without any
     // form of encryption, so we just need to find the paddle and fill
-    // all tiles up until the walls at the same eight
+    // all tiles up until the walls at the same height
     let mut paddle_found = false;
     let mut prev_wall = 0;
     let mut after_wall = 0;
@@ -39,7 +39,8 @@ fn hack(mut source: Vec<i64>) -> Vec<i64> {
             }
         }
     }
-    // there should be a paddle at this point
+    // if the game code is valid, a paddle will have been found by this point
+    assert!(paddle_found);
     for i in prev_wall+1..=after_wall-1 {
         source[i] = PADDLE;
     }

@@ -70,15 +70,18 @@ impl Network {
                     out_buffer.clear();
                 }
             }
-            // this is a bit confusing to take advantage of shortcircuiting
-            // if any packet queues are not empty, do not increment
+            // this is a bit confusing just to allow for
+            // shortcircuiting, such that we don't necessarily run
+            // through the whole queue.
+            // 
+            // If any packet queues are not empty, do not increment
             if !packet_queues.iter().any(|q| q.len() > 0) {
                 since_out += 1;
             } else {
                 since_out = 0;
             }
             // not sure what the definition of "continuously" is
-            // supposed to be exactly, but 10000 times in a row is
+            // supposed to be exactly, but 1000 times in a row is
             // probably more than enough.
             if since_out > 1000 {
                 let packet = self.nat_packet.take().unwrap();

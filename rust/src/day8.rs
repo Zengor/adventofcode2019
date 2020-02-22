@@ -12,7 +12,7 @@ pub fn part1(input: &str) -> usize {
         .chunks(WIDTH * HEIGHT)
         .into_iter()
         .map(|layer| {
-            // there are only 9 possible digits
+            // there are only 3 possible digits
             let mut counts = vec![0; 3];
             for d in layer {
                 counts[d] += 1;

@@ -8,10 +8,10 @@ macro_rules! bench_func {
 
 fn day1(c: &mut Criterion) {
     use adventofcode2019::day1::*;
-    
+
     let input = include_str!("../../input/01-1.txt");
     let mut group = c.benchmark_group("Day 1");
-        
+
     bench_func!(group, "Part1", part1, &input);
     bench_func!(group, "Part2", part2, &input);
     let input: Vec<i32> = input.lines().map(|l| l.parse().unwrap()).collect();
@@ -40,7 +40,6 @@ fn day1(c: &mut Criterion) {
 //         );
 //     }
 // }
-
 
 fn day5(c: &mut Criterion) {
     use adventofcode2019::day5::*;
@@ -82,12 +81,12 @@ fn day3(c: &mut Criterion) {
 
 fn day6(c: &mut Criterion) {
     use adventofcode2019::day6::*;
-    
+
     let input = include_str!("../../input/06-1.txt");
     let mut group = c.benchmark_group("Day 6");
-    
+
     bench_func!(group, "Part1", part1, &input);
-    bench_func!(group, "Part2", part2, &input);    
+    bench_func!(group, "Part2", part2, &input);
     // bench_func!(group, "Part1/graphmap", part1_graphmap, &input);
     // bench_func!(group, "Part2/graphmap", part2_graphmap, &input);
 }
@@ -96,7 +95,7 @@ fn day7(c: &mut Criterion) {
     use adventofcode2019::day7::*;
     let input = include_str!("../../input/07-1.txt");
     let mut group = c.benchmark_group("Day 7");
-    
+
     bench_func!(group, "Part1", part1, &input);
     bench_func!(group, "Part2", part2, &input);
 }

@@ -22,9 +22,9 @@
 //!
 //! The hardest part of using petgraph was actually understanding how
 //! to build the graph. Other than that, it was hard to figure out
-//! which particular way the search for part 2 should be done, as it
-//! provides many different ways to do basic BFS/DFS without really
-//! indicating which is best in which situation.
+//! which particular way the search for part 2 should be done, as the
+//! library provides many different ways to do basic BFS/DFS without
+//! really indicating which is best in which situation.
 //!
 //! For part 1, the solution is just to do a topological sort (with
 //! the implementation given in `petgraph`, which I assume is just a
